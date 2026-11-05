@@ -1,0 +1,8 @@
+{
+  "images" : [
+    { "filename" : "PetNervous.png", "idiom" : "universal", "scale" : "1x" },
+    { "filename" : "PetNervous@2x.png", "idiom" : "universal", "scale" : "2x" },
+    { "filename" : "PetNervous@3x.png", "idiom" : "universal", "scale" : "3x" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}
