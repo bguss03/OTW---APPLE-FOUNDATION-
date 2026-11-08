@@ -2,7 +2,6 @@ import Foundation
 import SwiftUI
 import SwiftData
 
-/// What a tapped calendar item opens.
 enum PlanDetailTarget: Hashable, Identifiable {
     case event(Event)
     case reminder(Reminder)
@@ -22,17 +21,14 @@ enum PlanDetailTarget: Hashable, Identifiable {
     }
 }
 
-/// Hashable wrapper so `PlanDetailTarget` can be used as an identifier.
 struct PersistentIdentifierBox: Hashable {
     let id: PersistentIdentifier
     init(_ id: PersistentIdentifier) { self.id = id }
 }
 
-/// Pure layout of one month: 6 week rows, 7 columns, plus the pills and bars placed into lanes.
 struct MonthLayout {
     static let rowCount = 6
     static let columnCount = 7
-    /// Only two lanes of pills fit under the day number in a 78pt row.
     static let visibleLanes = 2
 
     struct Day: Hashable {
@@ -41,11 +37,8 @@ struct MonthLayout {
     }
 
     enum PillStyle: Hashable {
-        /// Single-day event: tinted background, tag-coloured text.
         case event(TagColor)
-        /// Multi-day event bar: solid tag colour, white text.
         case span(TagColor)
-        /// Reminder: pale orange background, soft orange text.
         case reminder
     }
 
@@ -58,7 +51,6 @@ struct MonthLayout {
         let title: String
         let style: PillStyle
         let target: PlanDetailTarget
-        /// True when this segment continues a bar from the previous row.
         let continuesFromPreviousRow: Bool
     }
 
@@ -70,7 +62,6 @@ struct MonthLayout {
     }
 
     let month: Date
-    /// 6 x 7 cells; `nil` for days outside the month.
     let cells: [[Day?]]
     let segments: [Segment]
     let overflows: [Overflow]
@@ -85,9 +76,8 @@ struct MonthLayout {
         let firstWeekday = calendar.component(.weekday, from: monthStart)
         let leading = (firstWeekday - calendar.firstWeekday + 7) % 7
 
-        // Grid cells.
         var cells: [[Day?]] = Array(repeating: Array(repeating: nil, count: Self.columnCount), count: Self.rowCount)
-        var dateAt: [Int: Date] = [:] // slot index -> date
+        var dateAt: [Int: Date] = [:]
         for dayIndex in 0..<dayCount {
             let slot = leading + dayIndex
             guard slot < Self.rowCount * Self.columnCount,
@@ -104,8 +94,6 @@ struct MonthLayout {
             return leading + offset
         }
 
-        // Raw items, split into per-row segments. Ordering decides lane priority:
-        // longer bars first, then single-day events by start, then reminders.
         struct RawItem {
             let title: String
             let style: PillStyle
@@ -152,7 +140,6 @@ struct MonthLayout {
             return lhs.sortDate < rhs.sortDate
         }
 
-        // Lane assignment per row.
         var occupancy: [[[Bool]]] = Array(
             repeating: Array(repeating: Array(repeating: false, count: Self.columnCount), count: 8),
             count: Self.rowCount
@@ -197,7 +184,6 @@ struct MonthLayout {
             }
         }
 
-        // Days with hidden items show "+N" in the second lane, replacing a single-day pill there.
         var overflows: [Overflow] = []
         for (slotIndex, hidden) in hiddenPerSlot.sorted(by: { $0.key < $1.key }) {
             let row = slotIndex / Self.columnCount
@@ -214,7 +200,6 @@ struct MonthLayout {
         self.overflows = overflows
     }
 
-    /// Number of week rows actually used by this month (5 or 6).
     var usedRowCount: Int {
         cells.lastIndex { row in row.contains { $0 != nil } }.map { $0 + 1 } ?? Self.rowCount
     }

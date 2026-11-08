@@ -1,7 +1,6 @@
 import SwiftUI
 import SwiftData
 
-/// Rebuild of "v3 / Reminder Detail".
 struct ReminderDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -119,7 +118,6 @@ struct ReminderDetailView: View {
 
     // MARK: - Pieces
 
-    /// Priority badge + category chip, 28pt bold title, "Due today · Design System".
     private func hero(_ reminder: Reminder) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8) {

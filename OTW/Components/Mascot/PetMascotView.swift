@@ -1,18 +1,11 @@
 import SwiftUI
 
-// The OTW pet rebuilt as layers from the "OTW/Pet/*" Sketch symbols (112 x 120 pt artboard):
-// one orange body (with ears clipped out so they can wiggle) and separate white eye shapes
-// per expression, so the eyes can blink and morph independently.
-
-/// Facial expressions available in Sketch.
 enum PetExpression: Hashable {
     case `default`, happy, wink, love, nervous
 }
 
-/// Everything a header avatar needs to animate the mascot.
 struct MascotState: Equatable {
     var expression: PetExpression = .default
-    /// Idle loops (breathing, float, blink, ear wiggle). Off on screens that should stay still.
     var isLive = false
     var bounceTrigger = 0
     var hopTrigger = 0
@@ -25,7 +18,6 @@ struct PetMascotView: View {
     var bounceTrigger = 0
     var hopTrigger = 0
     var shakeTrigger = 0
-    /// Hop height in points; scale it with the mascot size.
     var hopHeight: CGFloat = 6
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -41,7 +33,6 @@ struct PetMascotView: View {
             MascotBodyView(earTrigger: earTrigger, animatesEars: loopsEnabled)
             eyes
         }
-        // Idle: breathing 1.0 ↔ 1.03 and a ±2pt float on a 2.5s ease-in-out loop.
         .phaseAnimator(loopsEnabled ? [false, true] : [false]) { content, up in
             content
                 .scaleEffect(loopsEnabled && up ? 1.03 : 1, anchor: .bottom)
@@ -49,7 +40,6 @@ struct PetMascotView: View {
         } animation: { _ in
             .easeInOut(duration: 1.25)
         }
-        // Tap: spring bounce.
         .keyframeAnimator(initialValue: MascotMotion(), trigger: bounceTrigger) { content, motion in
             let m = reduceMotion ? MascotMotion() : motion
             content.scaleEffect(x: m.scaleX, y: m.scaleY, anchor: .bottom)
@@ -65,7 +55,6 @@ struct PetMascotView: View {
                 SpringKeyframe(1, duration: 0.24, spring: .bouncy)
             }
         }
-        // Reminder done: small hop with squash and stretch.
         .keyframeAnimator(initialValue: MascotMotion(), trigger: hopTrigger) { content, motion in
             let m = reduceMotion ? MascotMotion() : motion
             content
@@ -91,7 +80,6 @@ struct PetMascotView: View {
                 SpringKeyframe(1, duration: 0.15, spring: .bouncy)
             }
         }
-        // Nervous: small shake.
         .keyframeAnimator(initialValue: MascotMotion(), trigger: shakeTrigger &+ nervousTrigger) { content, motion in
             let m = reduceMotion ? MascotMotion() : motion
             content
@@ -113,7 +101,6 @@ struct PetMascotView: View {
                 SpringKeyframe(0, duration: 0.12)
             }
         }
-        // Blink every 3–6 s.
         .task(id: loopsEnabled) {
             guard loopsEnabled else { return }
             while !Task.isCancelled {
@@ -124,7 +111,6 @@ struct PetMascotView: View {
                 withAnimation(.spring(duration: 0.1)) { isBlinking = false }
             }
         }
-        // Ears wiggle occasionally.
         .task(id: loopsEnabled) {
             guard loopsEnabled else { return }
             while !Task.isCancelled {
@@ -133,7 +119,6 @@ struct PetMascotView: View {
                 earTrigger &+= 1
             }
         }
-        // While nervous, shake every few seconds.
         .task(id: loopsEnabled && expression == .nervous) {
             guard loopsEnabled && expression == .nervous else { return }
             while !Task.isCancelled {
@@ -145,7 +130,6 @@ struct PetMascotView: View {
         .accessibilityHidden(true)
     }
 
-    /// Eye layer; replaced with a vertical squash "morph" when the expression changes.
     private var eyes: some View {
         ZStack {
             ForEach(Array(MascotArt.eyes(for: expression).enumerated()), id: \.offset) { _, eye in
@@ -160,7 +144,6 @@ struct PetMascotView: View {
     }
 }
 
-/// Animatable values used by the keyframe tracks.
 struct MascotMotion {
     var x: CGFloat = 0
     var y: CGFloat = 0
@@ -177,7 +160,6 @@ private struct MascotBodyView: View {
 
     var body: some View {
         ZStack {
-            // Head without the ear areas.
             MascotShape(path: MascotArt.body)
                 .fill(Theme.Colors.accent)
                 .mask(MascotEarCutout().fill(style: FillStyle(eoFill: true)))
@@ -202,7 +184,6 @@ private struct MascotBodyView: View {
     }
 }
 
-/// Draws a path defined in the 112 x 120 artboard, scaled to the view's frame.
 struct MascotShape: Shape {
     let path: Path
 
@@ -221,7 +202,6 @@ private struct MascotRect: Shape {
     }
 }
 
-/// Full artboard minus the ear areas (even-odd fill).
 private struct MascotEarCutout: Shape {
     func path(in frame: CGRect) -> Path {
         let sx = frame.width / MascotArt.size.width
@@ -246,7 +226,6 @@ private struct EyeSquash: ViewModifier {
 }
 
 extension AnyTransition {
-    /// Eyes close vertically on the way out and open on the way in.
     static var eyeMorph: AnyTransition {
         .modifier(active: EyeSquash(amount: 0.05), identity: EyeSquash(amount: 1))
     }
@@ -267,16 +246,12 @@ enum MascotArt {
     }
 
     struct Ear {
-        /// Area rotated as the ear (extends into the head so the seam stays hidden).
         let piece: CGRect
-        /// Area removed from the head layer.
         let cut: CGRect
-        /// Rotation pivot at the ear's base, in unit coordinates.
         let pivot: UnitPoint
         let direction: Double
     }
 
-    /// "OTW/Pet/Default" body path; shared by every expression so poses never jump.
     static let body = SVGPathParser.path(
         "M27.6974155,119.7 C2.97669482,116.4 -4.99447635,98.3 2.97669482,63.9 C6.30642455,49.4 12.6631813,32.8 23.5604786,10.8 C27.0920101,3.6 28.20192,2 30.320839,1.4 C33.6505687,0.4 35.5676858,3.1 37.1821002,10.9 C38.4938119,16.9 40.0073255,19.1 43.6397579,20.2 C51.0055237,22.4 69.0667849,21 76.3316498,17.7 C80.9730912,15.6 85.0091273,11.2 86.5226408,6.6 C87.9352534,2.3 89.9532714,0 92.4757939,0 C95.3010191,0 96.8145327,1.9 99.7406588,8.6 C106.904623,25.1 111.848767,48.1 112.25237,66.4 C112.857776,91.6 106.400118,107.6 92.4757939,115.7 C90.356875,117 85.7154336,118.6 81.8811993,119.5 C78.8541723,120.2 32.5406588,120.4 27.6974155,119.7 Z"
     )
@@ -333,7 +308,6 @@ enum MascotArt {
     ]
 }
 
-/// Minimal SVG path parser for the absolute M / L / H / V / C / Z commands Sketch exports.
 enum SVGPathParser {
     static func path(_ data: String) -> Path {
         var path = Path()
@@ -361,7 +335,7 @@ enum SVGPathParser {
             case "M":
                 current = CGPoint(x: number(), y: number())
                 path.move(to: current)
-                command = "L" // Extra pairs after M are line-tos.
+                command = "L"
             case "L":
                 current = CGPoint(x: number(), y: number())
                 path.addLine(to: current)

@@ -1,35 +1,21 @@
 import Foundation
 import SwiftData
 
-/// A calendar event. Fields mirror "v3 / Add · Event" and "v3 / Event Detail".
 @Model
 final class Event {
-    /// NAME field.
     var title: String
-    /// CATEGORY chips: Organization, Work, Study, Personal.
     var category: PlanCategory
-    /// Tag Color row.
     var tagColor: TagColor
-    /// Starts (date + time chips).
     var startDate: Date
-    /// Ends (date + time chips).
     var endDate: Date
-    /// Repeat row ("Every weekday", "Never").
     var repeatRule: RepeatRule
-    /// WHERE › Add location. Empty when not set.
     var location: String
-    /// WHERE › Add URL (meeting link). Empty when not set.
     var url: String
-    /// How the location is presented on the Home card (video call, place, or a person).
     var locationKind: LocationKind
-    /// Extra context shown after the location on the Home card, e.g. "Sprint 42".
     var detail: String
-    /// OPTIONS › Remind Me.
     var remindBefore: RemindOffset
-    /// NOTES card.
     var notes: String
     var createdAt: Date
-    /// Stable identifier for the local notification scheduled for this event.
     var notificationIdentifier: String = UUID().uuidString
 
     init(
@@ -63,7 +49,6 @@ final class Event {
         self.notificationIdentifier = UUID().uuidString
     }
 
-    /// Text shown on the Home card under the title, e.g. "Google Meet · Sprint 42".
     var metaText: String {
         var parts: [String] = []
         if !location.isEmpty {
@@ -77,7 +62,6 @@ final class Event {
         return parts.joined(separator: " · ")
     }
 
-    /// Turns "meet.google.com/..." into "Google Meet", otherwise returns the host.
     private static func friendlyName(forURL raw: String) -> String {
         let lower = raw.lowercased()
         if lower.contains("meet.google") { return "Google Meet" }
@@ -131,7 +115,6 @@ nonisolated enum RemindOffset: String, Codable, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    /// Seconds before the plan to fire the notification; `nil` means no notification.
     var timeInterval: TimeInterval? {
         switch self {
         case .none: nil
@@ -146,10 +129,7 @@ nonisolated enum RemindOffset: String, Codable, CaseIterable, Identifiable {
 }
 
 nonisolated enum LocationKind: String, Codable, CaseIterable {
-    /// Online meeting (video icon).
     case online
-    /// Physical place (map pin icon).
     case place
-    /// Meeting with a person (person icon).
     case person
 }

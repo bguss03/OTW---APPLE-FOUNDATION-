@@ -16,7 +16,6 @@ struct OTWApp: App {
 
         let model = AppModel()
         _appModel = State(initialValue: model)
-        // Set the delegate before launch finishes so foreground banners and taps are handled.
         NotificationManager.shared.configure(container: container, appModel: model)
     }
 
@@ -29,7 +28,6 @@ struct OTWApp: App {
     }
 }
 
-/// Navigation stack shared by Home, Calendar and the Detail screens.
 private struct RootView: View {
     @Environment(AppModel.self) private var appModel
     @Namespace private var zoomNamespace
@@ -53,7 +51,6 @@ private struct RootView: View {
                 }
         }
         .environment(\.zoomNamespace, zoomNamespace)
-        // Pending notifications are rebuilt so every one uses notification_sound.caf.
         .task { await NotificationManager.shared.rescheduleAll() }
     }
 }

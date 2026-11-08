@@ -1,13 +1,11 @@
 import SwiftUI
 import UIKit
 
-/// "v3 / Save · 1 Saving" → "v3 / Save · 2 Saved" confirmation shown after a plan is stored.
 struct SaveConfirmationView: View {
     let isSaved: Bool
     let savedDate: Date
     let onContinue: () -> Void
     var isEditing = false
-    /// "View in Calendar"; falls back to Continue when nil.
     var onViewInCalendar: (() -> Void)? = nil
 
     var body: some View {
@@ -33,7 +31,6 @@ struct SaveConfirmationView: View {
 
 // MARK: - Saving
 
-/// Squash-and-stretch hop of the squashed pet (156 x 132) in front of a pulsing glow.
 private struct SavingMotion {
     var y: CGFloat = 0
     var scaleX: CGFloat = 1
@@ -52,7 +49,6 @@ private struct SavingContent: View {
             hero
                 .frame(height: 142)
 
-            // Loader dots: orange, FDB27A, FED4B3.
             HStack(spacing: 9) {
                 ForEach(0..<3, id: \.self) { index in
                     Circle()
@@ -79,7 +75,6 @@ private struct SavingContent: View {
                 .frame(height: 18)
                 .padding(.top, 6)
 
-            // Progress 240 x 10, radius 5.
             ZStack(alignment: .leading) {
                 Capsule().fill(Theme.Colors.accentTint)
                 Capsule().fill(Theme.Colors.accent)
@@ -118,7 +113,6 @@ private struct SavingContent: View {
             KeyframeAnimator(initialValue: SavingMotion(), repeating: true) { motion in
                 pet(motion)
             } keyframes: { _ in
-                // One 0.7 s hop: anticipation squash → stretch in the air → landing squash.
                 KeyframeTrack(\.y) {
                     CubicKeyframe(0, duration: 0.1)
                     CubicKeyframe(-18, duration: 0.22)
@@ -143,7 +137,6 @@ private struct SavingContent: View {
         }
     }
 
-    /// Pet above its ground shadow; the shadow shrinks and fades with the hop height.
     private func pet(_ motion: SavingMotion) -> some View {
         let lift = min(max(-motion.y / 18, 0), 1)
         return ZStack(alignment: .bottom) {
@@ -172,7 +165,6 @@ private struct SavingContent: View {
     }
 }
 
-/// Soft orange radial glow that pulses on a ~0.7 s loop.
 private struct PulsingGlow: View {
     let diameter: CGFloat
     let isAnimated: Bool
@@ -201,14 +193,12 @@ private struct PulsingGlow: View {
 
 // MARK: - Saved
 
-/// Happy jump: crouch → leap (eyes morph to ^ ^ at the apex) → landing squash.
 private struct JumpMotion {
     var y: CGFloat = 0
     var scaleX: CGFloat = 1
     var scaleY: CGFloat = 1
 }
 
-/// Check badge pop: 0 → 1.15 → 1 with a small rotation.
 private struct BadgeMotion {
     var scale: CGFloat = 1
     var angle: Double = 0
@@ -230,7 +220,6 @@ private struct SavedContent: View {
     @State private var isTextVisible = false
     @State private var confettiStart: Date?
 
-    /// The jump lands (and the badge pops) this long after the Saved screen appears.
     private static let landing: Duration = .milliseconds(580)
 
     private var streakText: String {
@@ -317,10 +306,9 @@ private struct SavedContent: View {
 
         jumpTrigger += 1
         try? await Task.sleep(for: .milliseconds(300))
-        expression = .happy // Eyes morph at the top of the jump.
+        expression = .happy
         try? await Task.sleep(for: Self.landing - .milliseconds(300))
 
-        // Landing: badge pop, haptic, sound and confetti all on the same frame.
         isBadgeVisible = true
         badgeTrigger += 1
         confettiStart = .now
@@ -334,7 +322,6 @@ private struct SavedContent: View {
 
     // MARK: Hero
 
-    /// Glow, confetti, jumping pet, check badge and shadow, laid out on a 340pt stage.
     private var hero: some View {
         ZStack {
             Circle()
@@ -385,7 +372,6 @@ private struct SavedContent: View {
                 }
             }
 
-            // Check badge: 60pt orange circle with a 5pt white ring and glow.
             ZStack {
                 Circle()
                     .fill(Theme.Colors.accent)
@@ -415,14 +401,12 @@ private struct SavedContent: View {
             .opacity(isBadgeVisible ? 1 : 0)
             .offset(x: 78, y: 52)
 
-            // Burst from the pet's centre.
             ConfettiBurstView(start: confettiStart)
                 .frame(width: 600, height: 700)
                 .offset(y: -14)
         }
     }
 
-    /// Happy pet (160 x 172) with a ground shadow that scales with the jump height.
     private func jumpingPet(_ motion: JumpMotion) -> some View {
         let lift = min(max(-motion.y / 46, 0), 1)
         return ZStack {
@@ -447,7 +431,6 @@ private struct SavedContent: View {
         let rotation: Double
     }
 
-    /// Positions from the Sketch "Confetti" group, relative to the pet centre.
     private var confetti: [Confetti] {
         [
             Confetti(offset: CGPoint(x: -137, y: -120), size: CGSize(width: 12, height: 12), radius: 6, color: Theme.Colors.accent, rotation: 0),
@@ -465,7 +448,6 @@ private struct SavedContent: View {
     }
 }
 
-/// Fade + slide up, staggered 60 ms per item.
 private struct StaggeredReveal: ViewModifier {
     let isVisible: Bool
     let index: Int
@@ -478,10 +460,8 @@ private struct StaggeredReveal: ViewModifier {
     }
 }
 
-/// CONTINUE: orange face over a darker bottom edge; pressing pushes the face 3pt down into it.
 struct ThreeDButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        // Both shapes are backgrounds, so the button keeps the label's 58pt height.
         configuration.label
             .background(
                 RoundedRectangle(cornerRadius: Theme.Radius.primaryButton, style: .continuous)

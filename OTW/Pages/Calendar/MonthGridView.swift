@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// One month page of the Sketch "Month Grid": 6 rows of 78pt, day numbers, today / selected
-/// circles, and event / reminder pills laid into two lanes.
 struct MonthGridView: View {
     static let rowHeight: CGFloat = 78
     static let gridHeight: CGFloat = rowHeight * CGFloat(MonthLayout.rowCount)
@@ -22,7 +20,6 @@ struct MonthGridView: View {
             let cellWidth = proxy.size.width / CGFloat(MonthLayout.columnCount)
 
             ZStack(alignment: .topLeading) {
-                // Week rows with their top separators and day numbers.
                 VStack(spacing: 0) {
                     ForEach(0..<MonthLayout.rowCount, id: \.self) { row in
                         ZStack(alignment: .top) {
@@ -42,7 +39,6 @@ struct MonthGridView: View {
                     }
                 }
 
-                // Pills and spanning bars.
                 ForEach(layout.segments) { segment in
                     pill(segment)
                         .frame(
@@ -55,7 +51,6 @@ struct MonthGridView: View {
                         )
                 }
 
-                // "+N" markers for days with more items than fit.
                 ForEach(layout.overflows) { overflow in
                     Text("+\(overflow.count)")
                         .font(Theme.Fonts.calendarPill)
@@ -100,7 +95,6 @@ struct MonthGridView: View {
                 .frame(width: 30, height: 30)
                 .padding(.top, 4)
                 .frame(maxWidth: .infinity)
-                // Tap target covers the whole cell, pills included.
                 .frame(height: Self.rowHeight, alignment: .top)
                 .contentShape(Rectangle())
             }
@@ -120,8 +114,6 @@ struct MonthGridView: View {
 
     private func pill(_ segment: MonthLayout.Segment) -> some View {
         let colors = pillColors(segment.style)
-        // Pills are part of the day cell's tap target (17pt is too small to tap on its own);
-        // the day's cards below open the details.
         return Group {
             Text(segment.title)
                 .font(Theme.Fonts.calendarPill)
@@ -149,7 +141,6 @@ struct MonthGridView: View {
     }
 }
 
-/// "S M T W T F S" header following `Calendar.current.firstWeekday`; weekend letters lighter.
 struct WeekdayHeaderView: View {
     private let calendar = Calendar.current
 
@@ -167,7 +158,6 @@ struct WeekdayHeaderView: View {
     }
 
     private func isWeekend(_ weekday: Int) -> Bool {
-        // Build any date with this weekday and ask the calendar.
         var components = DateComponents()
         components.weekday = weekday
         components.weekdayOrdinal = 1

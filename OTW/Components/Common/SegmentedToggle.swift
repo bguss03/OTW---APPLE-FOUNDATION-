@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Sketch "Segmented Control": grey track, orange sliding thumb, Event / Reminders labels.
-/// The thumb is one capsule that slides between segments with matchedGeometryEffect.
 struct SegmentedToggle: View {
     @Binding var selection: PlanMode
 

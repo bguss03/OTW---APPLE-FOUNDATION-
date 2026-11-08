@@ -1,6 +1,5 @@
 import Foundation
 
-/// Editable copy of an `Event` used by the New Plan / Edit screens.
 struct EventDraft: Equatable {
     var title = ""
     var category: PlanCategory = .organization
@@ -13,13 +12,11 @@ struct EventDraft: Equatable {
     var repeatRule: RepeatRule = .never
     var notes = ""
 
-    /// New event: starts at the next full hour on the day selected on Home, lasts one hour.
     init(selectedDate: Date, now: Date = .now) {
         startDate = PlanDefaults.nextFullHour(on: selectedDate, now: now)
         endDate = startDate.addingTimeInterval(PlanDefaults.defaultDuration)
     }
 
-    /// Prefill from an existing event (used by Edit later).
     init(event: Event) {
         title = event.title
         category = event.category
@@ -36,12 +33,10 @@ struct EventDraft: Equatable {
     var trimmedTitle: String { title.trimmingCharacters(in: .whitespacesAndNewlines) }
     var isValid: Bool { !trimmedTitle.isEmpty }
 
-    /// Soft URL check: empty is fine, otherwise it must look like a host with a dot.
     var isURLValid: Bool {
         PlanDefaults.looksLikeURL(url)
     }
 
-    /// Moves the start and keeps the end after it, preserving the previous duration.
     mutating func setStart(_ newStart: Date) {
         let duration = max(endDate.timeIntervalSince(startDate), 60)
         startDate = newStart
@@ -90,11 +85,9 @@ struct EventDraft: Equatable {
     }
 }
 
-/// Editable copy of a `Reminder` used by the New Plan / Edit screens.
 struct ReminderDraft: Equatable {
     var title = ""
     var category: PlanCategory = .organization
-    /// Free-form label such as "Design System"; kept when the category is unchanged.
     var categoryLabel = ""
     private var originalCategory: PlanCategory?
     var dueDate: Date
@@ -157,14 +150,12 @@ struct ReminderDraft: Equatable {
 enum PlanDefaults {
     static let defaultDuration: TimeInterval = 60 * 60
 
-    /// The next full hour of `now`, placed on `day`.
     static func nextFullHour(on day: Date, now: Date) -> Date {
         let calendar = Calendar.current
         let hour = min(calendar.component(.hour, from: now) + 1, 23)
         return calendar.date(bySettingHour: hour, minute: 0, second: 0, of: day) ?? day
     }
 
-    /// Accepts "meet.google.com/abc" or "https://example.com"; rejects strings without a dotted host.
     static func looksLikeURL(_ raw: String) -> Bool {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty { return true }

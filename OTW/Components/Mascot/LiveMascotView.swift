@@ -1,32 +1,19 @@
 import SwiftUI
 
-// Fully posable OTW pet built from the "OTW/Pet/*" Sketch shapes as separate layers:
-// head (ears cut out), left ear, right ear, left eye, right eye. Every part is driven by a
-// `MascotPose`, so keyframe sequences can move eyes, ears and body independently.
-
-/// One frame of the mascot rig. Offsets are additive, scales multiplicative.
 struct MascotPose {
     var x: CGFloat = 0
     var y: CGFloat = 0
     var scale: CGFloat = 1
     var scaleX: CGFloat = 1
     var scaleY: CGFloat = 1
-    /// Body tilt in degrees, anchored at the bottom.
     var tilt: Double = 0
-    /// Horizontal eye shift in artboard units (112-wide artboard).
     var eyeShift: CGFloat = 0
-    /// 0 = open, 1 = closed.
     var blink: Double = 0
-    /// 0 = open right eye, 1 = curved wink.
     var wink: Double = 0
-    /// 0 = normal eyes, 1 = happy "^ ^" eyes.
     var happy: Double = 0
-    /// Ear rotation in degrees around each ear's base (positive = clockwise).
     var leftEar: Double = 0
     var rightEar: Double = 0
-    /// Vertical stretch of both ears from their base ("perk up").
     var earLift: CGFloat = 1
-    /// Single-ear flick amount; applied to one side by the view.
     var flick: Double = 0
 
     static func + (a: MascotPose, b: MascotPose) -> MascotPose {
@@ -49,19 +36,10 @@ struct MascotPose {
     }
 }
 
-/// The animated mascot used in the Pet Tip banner and the Home avatar.
-///
-/// While visible it loops one seamless 5.28 s sequence: look forward → glance left → glance
-/// right → centre → wink → neutral → ear wiggle + two blinks → idle pause. Every track starts and
-/// ends on the neutral pose with eased linear keyframes (never a spring as the last keyframe, whose
-/// value at the end of a short duration is not its target), so the loop never drifts or sticks.
 struct LiveMascotView: View {
     var expression: PetExpression = .default
-    /// Runs the loop while visible. Off = static neutral pose.
     var isLive = true
-    /// Banner only: pop in (0.6 → 1.1 → 1) before the loop starts.
     var playsIntro = false
-    /// Tap reaction: happy bounce, ears perk up, then the loop restarts from neutral.
     var tapTrigger = 0
     var hopTrigger = 0
     var shakeTrigger = 0
@@ -71,9 +49,7 @@ struct LiveMascotView: View {
 
     @State private var introTrigger = 0
     @State private var nervousTrigger = 0
-    /// The loop plays only while true; false shows the neutral pose.
     @State private var isLooping = false
-    /// Bumped to restart the loop from step 1 (fresh animator identity).
     @State private var loopGeneration = 0
     @State private var isVisible = false
     @State private var resumeToken = 0
@@ -105,7 +81,6 @@ struct LiveMascotView: View {
             startLoop(after: playsIntro ? Self.introLength : .zero)
         }
         .onDisappear {
-            // Stop and reset so the next appearance starts fresh from step 1.
             isVisible = false
             isLooping = false
             resumeToken += 1
@@ -114,11 +89,9 @@ struct LiveMascotView: View {
             if enabled { startLoop(after: .zero) } else { isLooping = false }
         }
         .onChange(of: tapTrigger) { _, _ in
-            // Pause on neutral for the bounce, then restart the loop from step 1.
             isLooping = false
             startLoop(after: Self.tapLength)
         }
-        // While nervous, shake every few seconds.
         .task(id: loopsEnabled && expression == .nervous) {
             guard loopsEnabled && expression == .nervous else { return }
             while !Task.isCancelled {
@@ -130,7 +103,6 @@ struct LiveMascotView: View {
         .accessibilityHidden(true)
     }
 
-    /// Restarts the loop from step 1 after `delay`, unless something newer happened meanwhile.
     private func startLoop(after delay: Duration) {
         resumeToken += 1
         let token = resumeToken
@@ -148,16 +120,12 @@ struct LiveMascotView: View {
         return intro + tap + hop + shake + (isLooping ? loop : MascotPose())
     }
 
-    // MARK: - Loop (5.28 s, starts and ends on the neutral pose)
+    // MARK: - Loop
 
     private static let ease = UnitCurve.easeInOut
 
-    /// 0.0 look forward (hold 0.8) · 0.8 glance left (hold 0.4) · 1.4 glance right (hold 0.4)
-    /// · 2.05 centre · 2.25 wink · 2.6 neutral · 2.6 ear wiggle ×2 · 3.21 blink · 3.62 blink
-    /// · 3.78 idle pause until 5.28.
     @KeyframesBuilder<MascotPose>
     private static var loopKeyframes: some Keyframes<MascotPose> {
-        // Gentle breathing 1.0 ↔ 1.03, two breaths per loop so the cycle stays seamless.
         KeyframeTrack(\.scale) {
             LinearKeyframe(1.03, duration: 1.32, timingCurve: ease)
             LinearKeyframe(1, duration: 1.32, timingCurve: ease)
@@ -223,9 +191,8 @@ struct LiveMascotView: View {
         }
     }
 
-    // MARK: - One-shot reactions (each ends exactly on neutral)
+    // MARK: - One-shot reactions
 
-    /// Banner pop-in: 0.6 → 1.1 → 1.
     @KeyframesBuilder<MascotPose>
     private static var introKeyframes: some Keyframes<MascotPose> {
         KeyframeTrack(\.scale) {
@@ -235,7 +202,6 @@ struct LiveMascotView: View {
         }
     }
 
-    /// Happy bounce, ears perk up, happy eyes, then back to normal (0.95 s).
     @KeyframesBuilder<MascotPose>
     private var tapKeyframes: some Keyframes<MascotPose> {
         KeyframeTrack(\.scale) {
@@ -314,7 +280,6 @@ struct LiveMascotView: View {
 
 // MARK: - Rig
 
-/// Draws the mascot from a pose: head, two ears, two (or three, for Nervous) eye shapes.
 struct MascotRig: View {
     let expression: PetExpression
     let pose: MascotPose
@@ -351,14 +316,12 @@ private struct RigEyes: View {
         }
     }
 
-    /// Eye paths for this frame, already squashed and shifted in artboard space.
     private var shapes: [Path] {
         let shift = pose.eyeShift
         let blink = 1 - 0.92 * min(max(pose.blink, 0), 1)
         let happy = min(max(pose.happy, 0), 1)
         let wink = min(max(pose.wink, 0), 1)
 
-        // Tap: every eye squashes closed, then the happy "^ ^" eyes open.
         if happy >= 0.5 && expression != .happy {
             return MascotArt.eyes(for: .happy).map { RigArt.squash($0.path, scaleY: (happy - 0.5) * 2, dx: shift) }
         }
@@ -366,7 +329,6 @@ private struct RigEyes: View {
         let baseOpen = expression == .happy ? 1 : 1 - 2 * happy
         return MascotArt.eyes(for: expression).enumerated().map { index, eye in
             var scale = baseOpen * (eye.blinks ? blink : 1)
-            // Wink: the right eye squashes into the curved wink shape.
             if index == 1 && expression == .default && wink > 0 {
                 if wink >= 0.5 {
                     return RigArt.squash(RigArt.winkArc, scaleY: (wink - 0.5) * 2, dx: shift)
@@ -379,17 +341,14 @@ private struct RigEyes: View {
 }
 
 private enum RigArt {
-    /// Head layer: the body with both ear areas removed.
     static let head: Path = {
         var cuts = Path()
         for ear in MascotArt.ears { cuts.addRect(ear.cut) }
         return MascotArt.body.subtracting(cuts)
     }()
 
-    /// Ear layers: the body clipped to each ear area (which overlaps the head to hide seams).
     static let ears: [Path] = MascotArt.ears.map { MascotArt.body.intersection(Path($0.piece)) }
 
-    /// Curved wink shape from "OTW/Pet/Wink".
     static let winkArc: Path = MascotArt.eyes(for: .wink)[1].path
 
     static func ear(_ index: Int, angle: Double, lift: CGFloat) -> Path {
@@ -402,7 +361,6 @@ private enum RigArt {
         return ears[index].applying(transform)
     }
 
-    /// Squashes a path vertically around its own centre and shifts it horizontally.
     static func squash(_ path: Path, scaleY: CGFloat, dx: CGFloat) -> Path {
         let box = path.boundingRect
         let transform = CGAffineTransform(translationX: box.midX + dx, y: box.midY)

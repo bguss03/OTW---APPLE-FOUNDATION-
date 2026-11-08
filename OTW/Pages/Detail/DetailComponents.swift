@@ -1,9 +1,5 @@
-
 import SwiftUI
 
-// Building blocks for "v3 / Event Detail" and "v3 / Reminder Detail".
-
-/// Back circle, centred title and the soft-orange pencil button.
 struct DetailNavBar: View {
     let title: String
     let onBack: () -> Void
@@ -26,7 +22,6 @@ struct DetailNavBar: View {
     }
 }
 
-/// Read-only grey chip (radius 17, 34pt) for dates and times.
 struct StaticChip: View {
     let text: String
     let width: CGFloat
@@ -45,7 +40,6 @@ struct StaticChip: View {
     }
 }
 
-/// "Starts  [May 3, 2026] [09:00]" without pickers.
 struct DetailDateTimeRow: View {
     let label: String
     var dateText: String?
@@ -67,7 +61,6 @@ struct DetailDateTimeRow: View {
     }
 }
 
-/// "Location        Not set" row: label left, value right.
 struct DetailValueRow: View {
     let label: String
     let value: String
@@ -92,7 +85,6 @@ struct DetailValueRow: View {
     }
 }
 
-/// NOTES card: 17 regular text, 96pt minimum height.
 struct NotesCard: View {
     let notes: String
 
@@ -109,7 +101,6 @@ struct NotesCard: View {
     }
 }
 
-/// Soft capsule used in the hero: 26pt tall, radius 13, 13 semibold label.
 struct HeroChip<Leading: View>: View {
     let text: String
     let foreground: Color
@@ -135,7 +126,6 @@ extension HeroChip where Leading == EmptyView {
     }
 }
 
-/// Bottom bar: "Delete" (120 x 56, soft orange) and the primary action.
 struct DetailActionBar: View {
     let primaryTitle: String
     var primaryIsMuted = false

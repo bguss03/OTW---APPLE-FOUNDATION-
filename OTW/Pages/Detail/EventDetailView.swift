@@ -1,7 +1,6 @@
 import SwiftUI
 import SwiftData
 
-/// Rebuild of "v3 / Event Detail".
 struct EventDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -89,16 +88,25 @@ struct EventDetailView: View {
                         .padding(.top, 20)
                     NotesCard(notes: event.notes)
                         .padding(.top, 8)
+
+                    Button {
+                        isConfirmingDelete = true
+                    } label: {
+                        Text("Delete")
+                            .font(.headline)
+                            .foregroundStyle(Color(hex: 0xFFFFFF))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(
+                                RoundedRectangle(cornerRadius: Theme.Radius.primaryButton, style: .continuous)
+                                    .fill(Color(hex: 0xFC6C01))
+                            )
+                    }
+                    .buttonStyle(.pressable)
+                    .padding(.top, 20)
                 }
                 .padding(.horizontal, Theme.Spacing.screen)
                 .padding(.bottom, Theme.Spacing.screen)
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                DetailActionBar(
-                    primaryTitle: "Edit Event",
-                    onDelete: { isConfirmingDelete = true },
-                    onPrimary: { isEditing = true }
-                )
             }
         }
         .alert("Delete this event?", isPresented: $isConfirmingDelete) {
@@ -118,7 +126,6 @@ struct EventDetailView: View {
 
     // MARK: - Pieces
 
-    /// Tinted category chip with tag dot, 30pt bold title, full date subtitle.
     private func hero(_ event: Event) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HeroChip(
@@ -164,7 +171,6 @@ struct EventDetailView: View {
         }
     }
 
-    /// "Sunday, May 3, 2026", or a range for multi-day events.
     private func subtitle(_ event: Event) -> String {
         if calendar.isDate(event.startDate, inSameDayAs: event.endDate) {
             return OTWFormat.fullDate(event.startDate)
@@ -174,7 +180,6 @@ struct EventDetailView: View {
 
     private func delete(_ event: Event) {
         dismiss()
-        // Remove after the pop animation so the screen never renders a deleted model.
         Task {
             try? await Task.sleep(for: .milliseconds(450))
             PlanActions.delete(event, in: modelContext)

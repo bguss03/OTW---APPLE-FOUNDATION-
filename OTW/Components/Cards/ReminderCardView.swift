@@ -1,11 +1,8 @@
 import SwiftUI
 
-/// Sketch "Card/<Reminder>" group from the Home › Reminders list (392 x 80, radius 22).
 struct ReminderCardView: View {
     let reminder: Reminder
-    /// The day the list is showing; drives "Today" / "Tomorrow" wording.
     let day: Date
-    /// True for the earliest unfinished reminder due today; its due text is orange.
     let isNextDue: Bool
     let onToggle: () -> Void
 
@@ -14,7 +11,6 @@ struct ReminderCardView: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             HStack(alignment: .top, spacing: 0) {
-                // Checkbox 26 x 26 drawn at (16, 27), with a 44 x 44 tap target around it.
                 Button(action: onToggle) {
                     checkbox
                         .frame(width: 44, height: 44)
@@ -25,14 +21,12 @@ struct ReminderCardView: View {
                 .padding(.top, 18)
                 .accessibilityLabel(reminder.isDone ? "Mark as not done" : "Mark as done")
 
-                // Title at x 56 / y 16, meta row at y 42.
                 VStack(alignment: .leading, spacing: 4) {
                     Text(reminder.title)
                         .font(Theme.Fonts.cardTitle)
                         .foregroundStyle(reminder.isDone ? Theme.Colors.doneLabel : Theme.Colors.label)
                         .lineLimit(1)
                         .minimumScaleFactor(0.9)
-                        // Keep the title clear of the badge; the meta row may run below it.
                         .padding(.trailing, badgeClearance)
 
                     HStack(spacing: 0) {
@@ -62,7 +56,6 @@ struct ReminderCardView: View {
                             .padding(.trailing, Theme.Spacing.cardPadding)
                     }
                 }
-                // 7 (button start) + 44 (button) + 5 = 56, matching the Sketch title x.
                 .padding(.leading, 5)
                 .padding(.top, Theme.Spacing.cardPadding)
 
@@ -102,7 +95,6 @@ struct ReminderCardView: View {
         .contentShape(Circle())
     }
 
-    /// Badge width (50 / 66 / 44 in Sketch) plus its 16pt trailing inset and an 8pt gap.
     private var badgeClearance: CGFloat {
         let badgeWidth: CGFloat = switch reminder.priority {
         case .high: 50
@@ -121,7 +113,6 @@ struct ReminderCardView: View {
         return isHighlighted ? Theme.Colors.accentDeep : Theme.Colors.secondaryLabel
     }
 
-    /// "Today, 18:00", "20:00", "Tomorrow", "Flexible" or "Done · 09:41".
     private var dueText: String {
         if reminder.isDone {
             let stamp = reminder.completedAt ?? reminder.dueDate ?? day
@@ -139,7 +130,6 @@ struct ReminderCardView: View {
     }
 }
 
-/// Priority pill: High (orange / white), Medium (light orange / deep orange), Low (pale / soft orange).
 struct PriorityBadge: View {
     let priority: Priority
     let isDone: Bool

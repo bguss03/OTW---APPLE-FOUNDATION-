@@ -1,19 +1,13 @@
-// xcode: set sdk=iOS
-
 import SwiftUI
 import SwiftData
 
-/// "v3 / Add · Event" and "v3 / Add · Reminder": the New Plan screen.
-/// Pass an existing `Event` or `Reminder` to prefill the form for editing.
 struct PlanEditorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @Environment(\.scenePhase) private var scenePhase
 
-    /// Called after the user taps Continue on the Saved screen, with the saved plan's date and type.
     let onSaved: (Date, PlanMode) -> Void
-    /// Called from "View in Calendar" with the saved plan's date.
     private let onViewInCalendar: ((Date) -> Void)?
 
     private let existingEvent: Event?
@@ -79,9 +73,7 @@ struct PlanEditorView: View {
             Text(isEditing ? "Your changes have not been saved yet." : "Your new plan has not been saved yet.")
         }
         .onAppear {
-            // Preload the save sound so it plays exactly with the badge pop.
             SoundEffects.shared.prepare()
-            // New plans start typing right away; edits keep the keyboard down like the Sketch frame.
             guard !isEditing else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
                 isNameFocused = true
@@ -89,7 +81,6 @@ struct PlanEditorView: View {
         }
         .task { await refreshNotificationStatus() }
         .onChange(of: scenePhase) { _, phase in
-            // Coming back from Settings.
             if phase == .active { Task { await refreshNotificationStatus() } }
         }
     }
@@ -107,16 +98,10 @@ struct PlanEditorView: View {
                     Image("PetDefault")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 72, height: 78)
-                        .padding(.top, 10)
+                        .frame(width: 80, height: 80)
+                        .padding(.top, 30)
+                        .padding(.bottom, 20)
 
-                    Text(isEditing ? "Update your plan" : "Add New Plans")
-                        .font(Theme.Fonts.headline)
-                        .foregroundStyle(Theme.Colors.label)
-                        .frame(height: 23)
-                        .padding(.top, 10)
-
-                    // Editing keeps the plan's type, so the Event / Reminders toggle is hidden.
                     if !isEditing {
                         SegmentedToggle(selection: $mode)
                             .padding(.top, 17)
@@ -141,7 +126,6 @@ struct PlanEditorView: View {
                     .padding(.top, isEditing ? 21 : 20)
                     .animation(Theme.Motion.standard, value: mode)
 
-                    // Breathing room below the last card (the nav-bar check is the only save action).
                     Color.clear
                         .frame(height: 32)
                 }

@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Sketch "OTW3/Header Actions": pet button and orange add button (96 x 44), shared by Home,
-/// Calendar and the Pet Tip highlight.
 struct HeaderActionsView: View {
     var mascot = MascotState()
     let onPetTap: () -> Void
@@ -14,7 +12,6 @@ struct HeaderActionsView: View {
     var body: some View {
         HStack(spacing: 8) {
             if let onPetLongPress {
-                // Tap and long press are exclusive gestures, so a hold never also opens the tip.
                 petCircle
                     .scaleEffect(isPressingPet ? 0.95 : 1)
                     .opacity(isPressingPet ? 0.75 : 1)
@@ -73,7 +70,6 @@ struct HeaderActionsView: View {
     }
 }
 
-/// Reports where Home's header actions are drawn so the Pet Tip can highlight them in place.
 struct HeaderActionsAnchorKey: PreferenceKey {
     static let defaultValue: Anchor<CGRect>? = nil
     static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {

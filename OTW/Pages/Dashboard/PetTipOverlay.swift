@@ -1,14 +1,10 @@
 import SwiftUI
 
-/// How the pet feels about today's plans.
 enum PetMood {
     case normal
-    /// Every reminder scheduled today is done.
     case love
-    /// A High reminder is past its due time and still open.
     case nervous
 
-    /// Resting expression of the header mascot.
     var expression: PetExpression {
         switch self {
         case .normal: .default
@@ -17,7 +13,6 @@ enum PetMood {
         }
     }
 
-    /// Pet inside the tip bubble (the Sketch frame uses the winking pet).
     var tipImage: String {
         switch self {
         case .normal: "PetWink"
@@ -27,10 +22,6 @@ enum PetMood {
     }
 }
 
-/// Rebuild of "v3 / Home – Pet Tip": a dim layer, the header actions highlighted in place,
-/// and a white banner 12pt below them, trailing-aligned with the screen margin.
-/// The banner slides down, its mascot plays an intro and then idles; tap the mascot to make it
-/// react, tap or swipe up the banner to dismiss. It auto-dismisses after about 5 seconds.
 struct PetTipOverlay: View {
     @Binding var isPresented: Bool
     let anchor: Anchor<CGRect>?
@@ -43,7 +34,6 @@ struct PetTipOverlay: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var dragOffset: CGFloat = 0
     @State private var mascotTaps = 0
-    /// Bumped by interaction to restart the auto-dismiss timer.
     @State private var dismissTimer = 0
 
     var body: some View {
@@ -88,7 +78,6 @@ struct PetTipOverlay: View {
         }
     }
 
-    /// Slides down on the way in and springs up on the way out; a plain fade with Reduce Motion.
     private var bannerTransition: AnyTransition {
         if reduceMotion { return .opacity }
         return .asymmetric(
@@ -97,7 +86,7 @@ struct PetTipOverlay: View {
         )
     }
 
-    // MARK: - Bubble (352 x 120, radius 24, black 15% shadow y10 blur30)
+    // MARK: - Bubble
 
     private var bubble: some View {
         HStack(alignment: .top, spacing: 14) {
@@ -111,7 +100,6 @@ struct PetTipOverlay: View {
             .frame(width: 70, height: 76)
             .padding(.top, 2)
             .contentShape(Rectangle())
-            // The mascot's own tap wins over the banner's dismiss tap.
             .onTapGesture {
                 mascotTaps += 1
                 dismissTimer += 1
@@ -148,7 +136,6 @@ struct PetTipOverlay: View {
         .gesture(
             DragGesture(minimumDistance: 8)
                 .onChanged { value in
-                    // Follows the finger upward, resists downward pulls.
                     let dy = value.translation.height
                     dragOffset = dy < 0 ? dy : dy * 0.15
                 }
@@ -160,7 +147,6 @@ struct PetTipOverlay: View {
                     }
                 }
         )
-        // Auto-dismiss ~5 s after appearing (or after the last mascot tap).
         .task(id: dismissTimer) {
             try? await Task.sleep(for: .seconds(5))
             guard !Task.isCancelled else { return }

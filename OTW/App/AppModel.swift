@@ -1,9 +1,6 @@
-// xcode: set sdk=iOS
-
 import SwiftUI
 import SwiftData
 
-/// Screens pushed on the main navigation stack.
 enum AppRoute: Hashable {
     case calendar
     case event(PersistentIdentifier, zoomSource: String? = nil)
@@ -11,22 +8,18 @@ enum AppRoute: Hashable {
 }
 
 extension Notification.Name {
-    /// Posted when a reminder is checked done anywhere in the app.
     static let otwReminderCompleted = Notification.Name("OTW.reminderCompleted")
 }
 
-/// App-wide navigation and the day shared by Home and Calendar.
 @Observable
 final class AppModel {
     var path: [AppRoute] = []
-    /// The day selected on Home's date strip and in the Calendar grid.
     var selectedDate: Date = Calendar.current.startOfDay(for: .now)
 
     func openCalendar() {
         path.append(.calendar)
     }
 
-    /// `zoomSource` is the card's transition id for the iOS 18 zoom; nil uses a normal push.
     func open(_ event: Event, zoomSource: String? = nil) {
         path.append(.event(event.persistentModelID, zoomSource: zoomSource))
     }
@@ -36,7 +29,6 @@ final class AppModel {
     }
 }
 
-/// Mutations that must keep SwiftData and scheduled notifications in sync.
 enum PlanActions {
     static func toggleDone(_ reminder: Reminder, in context: ModelContext) {
         reminder.toggleDone()

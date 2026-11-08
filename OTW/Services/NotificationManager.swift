@@ -3,7 +3,6 @@ import SwiftData
 import UIKit
 import UserNotifications
 
-/// Schedules "Remind Me" notifications, handles their actions, and routes taps to Detail screens.
 final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationManager()
 
@@ -26,12 +25,10 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     }
 
     private let center = UNUserNotificationCenter.current()
-    /// Bundled at the app bundle root (required by UNNotificationSound).
     private static let sound = UNNotificationSound(named: UNNotificationSoundName("notification_sound.caf"))
     private var container: ModelContainer?
     private weak var appModel: AppModel?
 
-    /// Call once at launch, before any notification can be delivered.
     func configure(container: ModelContainer, appModel: AppModel) {
         self.container = container
         self.appModel = appModel
@@ -45,7 +42,6 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         await center.notificationSettings().authorizationStatus
     }
 
-    /// Asks the first time; returns whether OTW may post notifications.
     @discardableResult
     func requestAuthorizationIfNeeded() async -> Bool {
         switch await authorizationStatus() {
@@ -60,7 +56,6 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     // MARK: - Scheduling
 
-    /// Schedules (or reschedules) the event's reminder at start − offset.
     func schedule(_ event: Event, requestingPermission: Bool = true) async {
         let base = event.notificationIdentifier
         await cancel(base)
@@ -72,7 +67,6 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         await add(content: content, triggers: triggers, base: base)
     }
 
-    /// Schedules (or reschedules) the reminder at due − offset; done or flexible reminders get nothing.
     func schedule(_ reminder: Reminder, requestingPermission: Bool = true) async {
         let base = reminder.notificationIdentifier
         await cancel(base)
@@ -84,7 +78,6 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         await add(content: content, triggers: triggers, base: base)
     }
 
-    /// Rebuilds every plan's notifications (e.g. after the sound changed). Never prompts.
     func rescheduleAll() async {
         guard let context = container?.mainContext else { return }
         guard await isAllowed(requestingPermission: false) else { return }
@@ -102,7 +95,6 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    /// Removes every pending and delivered notification that belongs to one plan.
     func cancel(_ base: String) async {
         let pending = await center.pendingNotificationRequests()
             .map(\.identifier)
@@ -114,8 +106,6 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         center.removeDeliveredNotifications(withIdentifiers: delivered)
     }
 
-    /// Repeat rules map to repeating calendar triggers; "Never" is a single trigger that is
-    /// skipped when its fire date has already passed.
     static func triggers(
         for date: Date,
         repeatRule: RepeatRule,
@@ -141,7 +131,6 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         case .monthly:
             return [repeating([.day, .hour, .minute], from: fireDate)]
         case .weekdays:
-            // One trigger per Monday–Friday occurrence (Gregorian weekday 2...6), shifted by the offset.
             let time = calendar.dateComponents([.hour, .minute], from: date)
             return (2...6).compactMap { weekday in
                 var match = DateComponents()
@@ -161,7 +150,6 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     // MARK: - Debug
 
     #if DEBUG
-    /// Fires test notifications for real items 5 (event) and 12 (reminder) seconds from now.
     func scheduleTestNotifications(event: Event?, reminder: Reminder?) async {
         guard await requestAuthorizationIfNeeded() else { return }
         if let event {
@@ -189,7 +177,6 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
-        // Show banners while the app is in the foreground.
         #if DEBUG
         let content = notification.request.content
         print("[OTW] presenting \(content.title) sound: \(content.sound.map { String(describing: $0) } ?? "none")")
@@ -308,9 +295,6 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    /// Returns a copy of `content` with the mascot thumbnail attached: Wink for events,
-    /// Happy for reminders. Each request gets its own temporary file because the system
-    /// moves attachment files into its own store.
     private func withMascot(_ content: UNMutableNotificationContent) -> UNMutableNotificationContent {
         guard let copy = content.mutableCopy() as? UNMutableNotificationContent else { return content }
         let kind = content.userInfo[Key.kind] as? String
@@ -346,7 +330,6 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         ])
     }
 
-    /// "meet.google.com/abc" → "https://meet.google.com/abc".
     static func webURL(from raw: String) -> URL? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }

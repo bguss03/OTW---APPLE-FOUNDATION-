@@ -1,8 +1,5 @@
 import SwiftUI
 
-// Building blocks for the New Plan forms, sized from "v3 / Add · Event" and "v3 / Add · Reminder".
-
-/// "NAME", "CATEGORY" … 13 semibold grey, inset 16 from the card edge.
 struct SectionLabel: View {
     let text: String
 
@@ -16,7 +13,6 @@ struct SectionLabel: View {
     }
 }
 
-/// Grey rounded card (F2F2F7, radius 22) that stacks rows vertically.
 struct FormCard<Content: View>: View {
     @ViewBuilder let content: Content
 
@@ -32,7 +28,6 @@ struct FormCard<Content: View>: View {
     }
 }
 
-/// 1pt separator (#3C3C43 at 20%) starting 16pt in, like the Sketch rows.
 struct FormSeparator: View {
     var body: some View {
         Rectangle()
@@ -42,7 +37,6 @@ struct FormSeparator: View {
     }
 }
 
-/// 44pt circular nav button: grey track (back) or solid orange (check).
 struct CircleIconButton: View {
     enum Style { case neutral, accent, soft }
 
@@ -84,7 +78,6 @@ struct CircleIconButton: View {
     }
 }
 
-/// Single-line field in a 52pt card: "Event name" / "Reminder name".
 struct NameField: View {
     let placeholder: String
     @Binding var text: String
@@ -118,7 +111,6 @@ struct NameField: View {
     }
 }
 
-/// Horizontal row of single-select category chips (38pt, radius 19, gap 10).
 struct CategoryChips: View {
     @Binding var selection: PlanCategory
 
@@ -160,7 +152,6 @@ struct CategoryChips: View {
     }
 }
 
-/// "Tag Color" card: title, selected colour name, and seven 32pt dots; the selected one has a ring.
 struct TagColorCard: View {
     @Binding var selection: TagColor
 
@@ -221,7 +212,6 @@ struct TagColorCard: View {
     }
 }
 
-/// Grey value chip (radius 17, 34pt tall) used for dates and times.
 struct ValueChip: View {
     let text: String
     let width: CGFloat
@@ -245,7 +235,6 @@ struct ValueChip: View {
     }
 }
 
-/// "Starts  [May 3, 2026] [09:00]" row. Tapping a chip opens a compact native picker in a popover.
 struct DateTimeRow: View {
     let label: String
     @Binding var date: Date
@@ -305,7 +294,6 @@ struct DateTimeRow: View {
     }
 }
 
-/// Placeholder-style text input row inside a card ("Add location", "Add URL (meeting link)").
 struct InputRow: View {
     let placeholder: String
     @Binding var text: String
@@ -325,7 +313,6 @@ struct InputRow: View {
     }
 }
 
-/// "Remind Me   30 min before ›" row backed by a menu.
 struct OptionRow<Option>: View where Option: CaseIterable & Identifiable & Hashable & RawRepresentable,
                                      Option.RawValue == String, Option.AllCases: RandomAccessCollection {
     let label: String
@@ -358,12 +345,10 @@ struct OptionRow<Option>: View where Option: CaseIterable & Identifiable & Hasha
             .contentShape(Rectangle())
         }
         .tint(Theme.Colors.accent)
-        // Remind Me / Repeat choices tick like a picker.
         .tickFeedback(trigger: selection)
     }
 }
 
-/// High / Medium / Low pills (48pt, radius 24). The selected one is solid orange.
 struct PriorityPicker: View {
     @Binding var selection: Priority
 
@@ -392,7 +377,6 @@ struct PriorityPicker: View {
         }
     }
 
-    /// Unselected look per priority, as drawn in "v3 / Add · Reminder".
     private func tint(for priority: Priority) -> (background: Color, foreground: Color) {
         switch priority {
         case .high: (Theme.Colors.accentTint, Theme.Colors.accent)
@@ -402,7 +386,6 @@ struct PriorityPicker: View {
     }
 }
 
-/// Big orange button (56pt, radius 28) with the orange glow.
 struct PrimaryButton: View {
     let title: String
     var isEnabled = true
@@ -428,7 +411,6 @@ struct PrimaryButton: View {
     }
 }
 
-/// Inline note shown under OPTIONS when notifications are denied for OTW.
 struct NotificationsOffNote: View {
     let onOpenSettings: () -> Void
 

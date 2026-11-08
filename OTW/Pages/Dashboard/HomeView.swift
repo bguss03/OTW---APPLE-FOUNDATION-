@@ -1,50 +1,44 @@
-// xcode: set sdk=iOS
-
 import SwiftUI
 import SwiftData
 
-/// Which list the Home screen shows. Mirrors the Event / Reminders segmented control.
 enum PlanMode: String, CaseIterable, Identifiable {
     case event = "Event"
     case reminders = "Reminders"
-
+    
     var id: String { rawValue }
 }
 
-/// Rebuild of "v3 / Home – May 3 · Events" and "v3 / Home – May 3 · Reminders".
 struct HomeView: View {
-    /// The device's current date; the strip starts centred on it.
     let today: Date
-
+    
     @Environment(AppModel.self) private var appModel
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Event.startDate) private var events: [Event]
     @Query(sort: \Reminder.createdAt) private var reminders: [Reminder]
-
+    
     @State private var mode: PlanMode = .event
     @State private var editorRequest: PlanEditorRequest?
     @State private var isShowingPetTip = false
     @State private var debugToast: String?
     @Environment(\.zoomNamespace) private var zoomNamespace
-
-    // Mascot reactions.
+    
     @State private var transientExpression: PetExpression?
     @State private var transientToken = 0
     @State private var mascotBounce = 0
     @State private var mascotHop = 0
     @State private var mascotShake = 0
-
+    
     private let calendar = Calendar.current
-
+    
     init(today: Date) {
         self.today = today
     }
-
+    
     private var selectedDate: Date { appModel.selectedDate }
-
+    
     var body: some View {
         @Bindable var appModel = appModel
-
+        
         VStack(spacing: 0) {
             HomeHeaderView(
                 selectedDate: selectedDate,
@@ -55,20 +49,19 @@ struct HomeView: View {
                 onAddTap: presentEditor
             )
             .padding(.top, 2)
-
+            
             DateStripView(
                 today: today,
                 selectedDate: $appModel.selectedDate,
                 hasEvents: { hasEvents(on: $0) },
                 hasReminders: { hasReminders(on: $0) }
             )
-            // The strip scrolls edge to edge, so cancel the screen margin here.
             .padding(.horizontal, -Theme.Spacing.screen)
             .padding(.top, Theme.Spacing.section)
-
+            
             SegmentedToggle(selection: $mode)
                 .padding(.top, Theme.Spacing.section)
-
+            
             HStack {
                 Spacer()
                 Text(countText)
@@ -77,10 +70,9 @@ struct HomeView: View {
             }
             .frame(height: 16)
             .padding(.top, Theme.Spacing.section)
-
+            
             ScrollView(showsIndicators: false) {
                 listContent
-                    // Event ⇄ Reminders cross-fade.
                     .id(mode)
                     .transition(.opacity)
                     .padding(.top, Theme.Spacing.listTop)
@@ -116,7 +108,6 @@ struct HomeView: View {
         }
         .fullScreenCover(item: $editorRequest) { request in
             PlanEditorView(selectedDate: request.date, mode: request.mode) { savedDate, savedMode in
-                // Jump the strip to the saved plan's day and show its list.
                 appModel.selectedDate = calendar.startOfDay(for: savedDate)
                 mode = savedMode
             } onViewInCalendar: { _ in
@@ -124,7 +115,6 @@ struct HomeView: View {
             }
             .id(request.id)
         }
-        // Checking a reminder done (anywhere) makes the pet hop happily.
         .task {
             for await _ in NotificationCenter.default.notifications(named: .otwReminderCompleted) {
                 mascotHop += 1
@@ -138,15 +128,13 @@ struct HomeView: View {
             if mood == .nervous { mascotShake += 1 }
         }
     }
-
-    /// Opens New Plan for the currently selected day and list. A new request id per
-    /// presentation guarantees a fresh form (state, scroll offset, focus) every time.
+    
     private func presentEditor() {
         editorRequest = PlanEditorRequest(date: selectedDate, mode: mode)
     }
-
+    
     // MARK: - List
-
+    
     @ViewBuilder
     private var listContent: some View {
         switch mode {
@@ -154,9 +142,7 @@ struct HomeView: View {
             if eventsForDay.isEmpty {
                 EmptyStateView(
                     title: "Nothing planned yet",
-                    subtitle: "Enjoy your free time, or plan something new.",
-                    buttonTitle: "Add Event",
-                    action: presentEditor
+                    subtitle: "Enjoy your free time, or plan something new.",      action: presentEditor
                 )
             } else {
                 LazyVStack(spacing: Theme.Spacing.cardGap) {
@@ -177,7 +163,6 @@ struct HomeView: View {
                 EmptyStateView(
                     title: "All caught up!",
                     subtitle: "No reminders for this day. Nice and easy.",
-                    buttonTitle: "Add Reminder",
                     action: presentEditor
                 )
             } else {
@@ -201,25 +186,22 @@ struct HomeView: View {
             }
         }
     }
-
+    
     // MARK: - Derived data
-
+    
     private var eventsForDay: [Event] {
         events.filter { covers($0, selectedDate) }
     }
-
-    /// True when the event starts, ends or continues on `day` (multi-day events included).
+    
     private func covers(_ event: Event, _ day: Date) -> Bool {
         let day = calendar.startOfDay(for: day)
         return day >= calendar.startOfDay(for: event.startDate) && day <= calendar.startOfDay(for: event.endDate)
     }
-
-    /// Reminders listed on the selected day, ordered High → Medium → Low, then by due time.
+    
     private var remindersForDay: [Reminder] {
         reminders
             .filter { calendar.isDate($0.scheduledDate, inSameDayAs: selectedDate) }
             .sorted { lhs, rhs in
-                // Done reminders sink to the bottom.
                 if lhs.isDone != rhs.isDone { return !lhs.isDone }
                 if lhs.priority != rhs.priority {
                     return priorityRank(lhs.priority) < priorityRank(rhs.priority)
@@ -232,15 +214,14 @@ struct HomeView: View {
                 }
             }
     }
-
-    /// The earliest unfinished reminder due on the selected day; its due text is highlighted.
+    
     private var nextDueReminder: Reminder? {
         remindersForDay
             .filter { !$0.isDone }
             .filter { due in due.dueDate.map { calendar.isDate($0, inSameDayAs: selectedDate) } ?? false }
             .min { ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture) }
     }
-
+    
     private var countText: String {
         switch mode {
         case .event:
@@ -251,15 +232,15 @@ struct HomeView: View {
             return "\(count) \(count == 1 ? "reminder" : "reminders") left"
         }
     }
-
+    
     private func hasEvents(on day: Date) -> Bool {
         events.contains { covers($0, day) }
     }
-
+    
     private func hasReminders(on day: Date) -> Bool {
         reminders.contains { calendar.isDate($0.scheduledDate, inSameDayAs: day) }
     }
-
+    
     private func priorityRank(_ priority: Priority) -> Int {
         switch priority {
         case .high: 0
@@ -267,26 +248,24 @@ struct HomeView: View {
         case .low: 2
         }
     }
-
+    
     private func toggle(_ reminder: Reminder) {
         withAnimation(Theme.Motion.standard) {
             PlanActions.toggleDone(reminder, in: modelContext)
         }
-        // Checkbox: success haptic only, no tick sound.
         if reminder.isDone { TickFeedback.shared.success() }
     }
-
+    
     // MARK: - Pet
-
-    /// Reminders scheduled for the real today (not the strip selection).
+    
     private var todaysReminders: [Reminder] {
         reminders.filter { calendar.isDateInToday($0.scheduledDate) }
     }
-
+    
     private var todaysEvents: [Event] {
         events.filter { covers($0, .now) }
     }
-
+    
     private var overdueHighReminders: [Reminder] {
         let now = Date.now
         return reminders.filter { reminder in
@@ -294,13 +273,13 @@ struct HomeView: View {
             return due < now
         }
     }
-
+    
     private var petMood: PetMood {
         if !overdueHighReminders.isEmpty { return .nervous }
         if !todaysReminders.isEmpty && todaysReminders.allSatisfy(\.isDone) { return .love }
         return .normal
     }
-
+    
     private var petTip: (title: String, message: String) {
         switch petMood {
         case .nervous:
@@ -323,9 +302,9 @@ struct HomeView: View {
             return ("Don't forget your agenda!", "You have \(events) and \(remindersText) today. \(nudge)")
         }
     }
-
+    
     // MARK: - Mascot
-
+    
     private var mascotState: MascotState {
         MascotState(
             expression: transientExpression ?? petMood.expression,
@@ -335,12 +314,11 @@ struct HomeView: View {
             shakeTrigger: mascotShake
         )
     }
-
-    /// Tap: spring bounce, Happy or Wink for 1.5 s, light haptic, and the Pet Tip.
+    
     private func petTapped() {
         isShowingPetTip.toggle()
     }
-
+    
     private func showTransient(_ expression: PetExpression) {
         transientToken += 1
         let token = transientToken
@@ -350,12 +328,11 @@ struct HomeView: View {
             if token == transientToken { transientExpression = nil }
         }
     }
-
+    
     // MARK: - Debug
-
-    /// DEBUG builds only: long-press the pet to receive test notifications in 5 seconds.
+    
     private var debugLongPressAction: (() -> Void)? {
-        #if DEBUG
+#if DEBUG
         return {
             let event = todaysEvents.first { !$0.url.isEmpty } ?? todaysEvents.first ?? events.first
             let reminder = todaysReminders.first { !$0.isDone } ?? reminders.first { !$0.isDone }
@@ -369,13 +346,12 @@ struct HomeView: View {
                 withAnimation(Theme.Motion.snappy) { debugToast = nil }
             }
         }
-        #else
+#else
         return nil
-        #endif
+#endif
     }
 }
 
-/// One presentation of the New Plan screen.
 struct PlanEditorRequest: Identifiable {
     let id = UUID()
     let date: Date

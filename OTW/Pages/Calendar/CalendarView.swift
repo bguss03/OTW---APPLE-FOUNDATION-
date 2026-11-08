@@ -1,12 +1,7 @@
-// xcode: set sdk=iOS
-
 import SwiftUI
 import SwiftData
 
-/// Rebuild of "v3 / Calendar": month title, weekday header, paged month grid with pills,
-/// and the selected day's Event and Reminder cards.
 struct CalendarView: View {
-    /// Shared with Home so both screens stay on the same day.
     @Binding var selectedDate: Date
 
     @Environment(\.dismiss) private var dismiss
@@ -35,7 +30,6 @@ struct CalendarView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
-                    // "May 2026": tap to return to today.
                     Button(action: jumpToToday) {
                         Text(OTWFormat.monthTitle(visibleMonth ?? selectedDate))
                             .font(Theme.Fonts.monthTitle)
@@ -65,7 +59,6 @@ struct CalendarView: View {
         .background(BackSwipeEnabler())
         .edgeBackSwipe { dismiss() }
         .toolbar(.hidden, for: .navigationBar)
-        // Month swipe: tick + light impact.
         .onChange(of: visibleMonth) { _, _ in
             TickFeedback.shared.tick()
             TickFeedback.shared.settle()
@@ -80,7 +73,6 @@ struct CalendarView: View {
             PlanEditorView(selectedDate: request.date, mode: request.mode) { savedDate, _ in
                 selectedDate = calendar.startOfDay(for: savedDate)
             } onViewInCalendar: { _ in
-                // Already on the Calendar; the saved date is selected above.
             }
             .id(request.id)
         }
@@ -206,7 +198,6 @@ struct CalendarView: View {
 
     // MARK: - Data
 
-    /// Events that cover the selected day, including multi-day ones.
     private var eventsForDay: [Event] {
         let day = calendar.startOfDay(for: selectedDate)
         return events.filter { event in
@@ -274,7 +265,6 @@ struct CalendarView: View {
         withAnimation(Theme.Motion.standard) {
             PlanActions.toggleDone(reminder, in: modelContext)
         }
-        // Checkbox: success haptic only, no tick sound.
         if reminder.isDone { TickFeedback.shared.success() }
     }
 

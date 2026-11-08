@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// Orange dots and dashes that burst outward from the centre, then drift down and fade.
-/// Drawn in a single Canvas driven by TimelineView and paused once the burst is over.
 struct ConfettiBurstView: View {
-    /// When set, the burst starts at this time.
     let start: Date?
 
     private static let duration: TimeInterval = 1.8
@@ -18,7 +15,6 @@ struct ConfettiBurstView: View {
                 guard t >= 0, t < Self.duration else { return }
                 let center = CGPoint(x: size.width / 2, y: size.height / 2)
                 for particle in particles {
-                    // Drag eases the outward burst; gravity adds the drift.
                     let k = 3.2
                     let travel = (1 - exp(-k * t)) / k
                     let x = center.x + particle.velocity.dx * travel
@@ -28,8 +24,12 @@ struct ConfettiBurstView: View {
                     piece.opacity = opacity
                     piece.translateBy(x: x, y: y)
                     piece.rotate(by: .degrees(particle.spin * t + particle.angle))
-                    let rect = CGRect(x: -particle.size.width / 2, y: -particle.size.height / 2,
-                                      width: particle.size.width, height: particle.size.height)
+                    let rect = CGRect(
+                        x: -particle.size.width / 2,
+                        y: -particle.size.height / 2,
+                        width: particle.size.width,
+                        height: particle.size.height
+                    )
                     piece.fill(Path(roundedRect: rect, cornerRadius: min(rect.width, rect.height) / 2), with: .color(particle.color))
                 }
             }
@@ -53,8 +53,14 @@ struct ConfettiBurstView: View {
         let spin: Double
 
         static func makeBurst(count: Int) -> [Particle] {
-            let colors = [Theme.Colors.accent, Theme.Colors.accentPale, Theme.Colors.accentDeep,
-                          Theme.Colors.accentTintSoft, Theme.Colors.accentSoft, Theme.Colors.accentShadow]
+            let colors = [
+                Theme.Colors.accent,
+                Theme.Colors.accentPale,
+                Theme.Colors.accentDeep,
+                Theme.Colors.accentTintSoft,
+                Theme.Colors.accentSoft,
+                Theme.Colors.accentShadow
+            ]
             return (0..<count).map { _ in
                 let direction = Double.random(in: 0..<(2 * .pi))
                 let speed = Double.random(in: 380...720)

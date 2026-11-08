@@ -1,14 +1,10 @@
 import Foundation
 import SwiftData
 
-/// Seed data reproducing the texts in the "v3 / Home" and "v3 / Calendar" Sketch frames,
-/// placed relative to today so the strip, grid and lists are never empty.
 enum SampleData {
-    /// Bump when the sample set changes so an existing store is re-seeded.
     private static let seedVersion = 5
     private static let seedVersionKey = "OTW.sampleDataSeedVersion"
 
-    /// Inserts sample events and reminders if the store is empty or seeded with an older set.
     static func seedIfNeeded(in context: ModelContext) {
         let eventCount = (try? context.fetchCount(FetchDescriptor<Event>())) ?? 0
         let reminderCount = (try? context.fetchCount(FetchDescriptor<Reminder>())) ?? 0
@@ -33,14 +29,11 @@ enum SampleData {
         let calendar = Calendar.current
         let inTwoDays = day(today, offset: 2)
 
-        // A multi-day event that is guaranteed to cross a week boundary: it starts two days
-        // before the start of last week and ends two days after it.
         let lastWeekStart = startOfWeek(containing: day(today, offset: -7), calendar: calendar)
         let midtermStart = day(lastWeekStart, offset: -2)
         let midtermEnd = day(lastWeekStart, offset: 2)
 
         return [
-            // v3 / Home – May 3 · Events → today
             Event(
                 title: "Daily Standup",
                 category: .work,
@@ -83,7 +76,6 @@ enum SampleData {
                 location: "UC Tower, 7th Floor",
                 locationKind: .place
             ),
-            // v3 / Home – May 5 · Events → today + 2
             Event(
                 title: "Calculus Class",
                 category: .study,
@@ -104,7 +96,6 @@ enum SampleData {
                 locationKind: .place,
                 detail: "Leg Day"
             ),
-            // v3 / Calendar → multi-day and scattered single-day events
             Event(
                 title: "Sprint Review",
                 category: .work,
@@ -163,7 +154,6 @@ enum SampleData {
         let tomorrow = day(today, offset: 1)
         let inThreeDays = day(today, offset: 3)
         return [
-            // v3 / Home – May 3 · Reminders → today
             Reminder(
                 title: "Finalize Mobile Prototype",
                 category: .work,
@@ -198,7 +188,6 @@ enum SampleData {
                 dueDate: nil,
                 priority: .low
             ),
-            // v3 / Home – May 6 · Reminders → today + 3
             Reminder(
                 title: "Calculus Assignment",
                 category: .study,
@@ -215,7 +204,6 @@ enum SampleData {
                 dueDate: at(inThreeDays, 17, 0),
                 priority: .low
             ),
-            // v3 / Calendar → scattered reminders
             Reminder(
                 title: "Pay Rent",
                 category: .personal,
